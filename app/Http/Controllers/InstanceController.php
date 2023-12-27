@@ -12,11 +12,8 @@ class InstanceController extends Controller
     public function index(){
         $Instances = Instance::latest()->get();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'List Data',
-            'data'    => $Instances
-        ], 200);
+        return $this->success(['message' => "Data Found!", "data lists" => $Instances]);
+
     }
 
     public function show($identifier){
@@ -27,19 +24,11 @@ class InstanceController extends Controller
         ->first();
 
        if($Instance){
-            return response()->json([
-            "info" => "Success",
-            "message" => "Data Found!",
-            "Data" => $Instance
-            ], 200);
+        return $this->success(['message' => "Data Found!", "data" => $Instance]);
        }
 
         //make response JSON
-        return response()->json([
-            "info" => "Error",
-            "message" => "Data not Found!",
-            'Supposedly Null' => $Instance
-        ], 404);
+        return $this->failed(['message' => "Data Not Found!"]);
     }
 
     public function store(Request $request){
@@ -51,7 +40,7 @@ class InstanceController extends Controller
 
 
         if ($validator->fails()) {
-            return response()->json($validator->errors()->toJson(), 400);
+            return $this->invalidField($validator->errors());
         }
 
 
@@ -60,10 +49,10 @@ class InstanceController extends Controller
         );
         
         if($user){
-            return response()->json([
-                'message' => "Storing Succeeded!"
-            ], 201);
+            return $this->success(['message' => "Data Stored!"]);
         }
+
+        return $this->failed(['message' => "Data Storing Failed!"]);
     }
 
     public function update(Request $request, $identifier){
@@ -75,7 +64,7 @@ class InstanceController extends Controller
         ]);
     
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return $this->invalidField($validator->errors());
         }
 
         
@@ -87,17 +76,10 @@ class InstanceController extends Controller
 
        if($Instance){
         //$user->update($request->toArray()); OPTIONAL
-        return response()->json([
-            "info" => "success",
-            "Message" => "Data Updated!",
-        ]);
+            return $this->success(['message' => "Data Updated!"]);
        }
 
-       return response()->json([
-        "info" => "Error",
-        "Message" => "Error when updating data"
-    ]);
-        
+       return $this->failed(['message' => "Data Not Found!"]);
     }
 
     public function destroy($identifier){
@@ -109,16 +91,24 @@ class InstanceController extends Controller
 
         if ($user) {
 
-            return response()->json([
-                'info' => "Success",
-                'message' => 'Data Vanished!',
-            ], 200);
+            return $this->success(['message' => "Data Deleted Successfully!"]);
         }
 
         //data post not found
-        return response()->json([
-            'info' => "error",
-            'message' => 'Data Not Found',
-        ], 404);
+        return $this->failed(['message' => "Data Not Found!"]);
+    }
+
+    public function invalidField($err){
+        return response()->json(["success" => false ,"message" => "Invalid Field", "error" => $err]);
+    }
+
+    public function failed($data){
+        $data['success'] = false;
+        return response()->json($data, 401);
+    }
+
+    public function success($data){
+        $data['success'] = true;
+        return response()->json($data);
     }
 }

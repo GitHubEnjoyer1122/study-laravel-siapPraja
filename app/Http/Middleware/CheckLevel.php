@@ -15,8 +15,8 @@ class CheckLevel
      */
     public function handle(Request $request, Closure $next, Int $requiredLevel): Response
     {
-        if (!auth()->user()->hasLevel($requiredLevel)) {
-            abort(403, 'Unauthorized');
+        if (!auth()->check() || !auth()->user()->hasLevel($requiredLevel)) {
+            abort(404, 'Not Found');
         }
         return $next($request);
     }

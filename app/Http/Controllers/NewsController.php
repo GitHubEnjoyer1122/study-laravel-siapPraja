@@ -10,36 +10,24 @@ class NewsController extends Controller
 {
     
     public function index(){
-        $Instances = News::latest()->get();
+        $News = News::latest()->get();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'List Data',
-            'data'    => $Instances
-        ], 200);
+        return $this->success(['message' => 'Data received successfully', "data" => $News]);
     }
 
     public function show($identifier){
-       $Instance = News::where('id', $identifier)
+       $News = News::where('id', $identifier)
         ->orWhere('news_title', $identifier)
         ->orWhere('news_content', $identifier)
         ->orWhere('news_image', $identifier)
         ->first();
 
-       if($Instance){
-            return response()->json([
-            "info" => "Success",
-            "message" => "Data Found!",
-            "Data" => $Instance
-            ], 200);
+       if($News){
+            return $this->success(["message" => "Data Found!", "data" => $News]);
        }
 
         //make response JSON
-        return response()->json([
-            "info" => "Error",
-            "message" => "Data not Found!",
-            'Supposedly Null' => $Instance
-        ], 404);
+        return $this->failed(["message" => "Data not Found!",]);
     }
 
     public function store(Request $request){
@@ -51,7 +39,7 @@ class NewsController extends Controller
 
 
         if ($validator->fails()) {
-            return response()->json($validator->errors()->toJson(), 400);
+            return $this->invalidField($validator->errors());
         }
 
         $image = $request->file('image');
@@ -65,10 +53,10 @@ class NewsController extends Controller
         );
         
         if($user){
-            return response()->json([
-                'message' => "Storing Succeeded!"
-            ], 201);
+            return $this->success(['message' => "Storing Succeeded!"]);
         }
+
+        $this->failed(['message' => "Storing Failed"]);
     }
 
     public function update(Request $request, $identifier){
@@ -80,28 +68,23 @@ class NewsController extends Controller
         ]);
     
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return $this->invalidField($validator->errors());
         }
 
         
-       $Instance = News::where('id', $identifier)
+       $News = News::where('id', $identifier)
        ->orWhere('news_title', $identifier)
        ->orWhere('news_content', $identifier)
        ->orWhere('news_image', $identifier)
        ->update($request->toArray());//OPTIONAL atau yg dibawah
 
-       if($Instance){
+       if($News){
         //$user->update($request->toArray()); OPTIONAL
-        return response()->json([
-            "info" => "success",
-            "Message" => "Data Updated!",
-        ]);
+        return $this->success(['message' => "Data Updated!"]);
+
        }
 
-       return response()->json([
-        "info" => "Error",
-        "Message" => "Error when updating data"
-    ]);
+       return $this->failed(['message' => "Error when Updating Data, Data not Found"]);
         
     }
 
@@ -113,17 +96,24 @@ class NewsController extends Controller
         ->delete();
 
         if ($user) {
-
-            return response()->json([
-                'info' => "Success",
-                'message' => 'Data Vanished!',
-            ], 200);
+            return $this->success(['message' => "Data Deleted!"]);
         }
 
         //data post not found
-        return response()->json([
-            'info' => "error",
-            'message' => 'Data Not Found',
-        ], 404);
+        return $this->failed(['message' => "Error when Deleting Data, Data not Found"]);
+    }
+
+    public function invalidField($err){
+        return response()->json(["success" => false ,"message" => "Invalid Field", "error" => $err]);
+    }
+
+    public function failed($data){
+        $data['success'] = false;
+        return response()->json($data, 401);
+    }
+
+    public function success($data){
+        $data['success'] = true;
+        return response()->json($data);
     }
 }
