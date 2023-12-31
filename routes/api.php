@@ -1,12 +1,15 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\NewsController;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\StudentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\InstanceController;
+use App\Http\Controllers\PresenceController;
+use App\Http\Controllers\TroubleReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,7 +26,7 @@ use App\Http\Controllers\InstanceController;
 //     return $request->user();
 // });
 
-/*AUTH API ROUTES*/
+/* AUTH API ROUTES */
 Route::group(['prefix' => 'auth'], function ($router) {
 
     Route::post('/login', [AuthController::class, 'login']);
@@ -35,17 +38,27 @@ Route::group(['prefix' => 'auth'], function ($router) {
 /*INSTANCES API ROUTES*/
 Route::middleware('level:4')->resource('instance', InstanceController::class);
 
-/*USERS API ROUTES*/
+/* USERS API ROUTES */
 Route::group(['middleware' => 'level:4', 'prefix' => 'users'], function ($router) {
     /*
-    * RUD User Route
-    */
+     * CRUD User Route
+     */
     Route::middleware('level:4')->resource('', UserController::class);
 
     /*
-    * Storing User
-    */
+     * Storing User
+     */
     Route::post('store', [AuthController::class, 'store']);
 })->middleware('level');
 
+/* NEWS API ROUTES */ 
+Route::middleware('level:4')->resource('news', NewsController::class);
 
+/* PRESENCE API ROUTES */
+Route::middleware('level:1')->resource('presence', PresenceController::class);
+
+/* ACTIVITY API ROUTES */
+Route::middleware('level:1')->resource('activity', ActivityController::class);
+
+/* TROUBLE REPORT API ROUTES */
+Route::middleware('level:1')->resource('troublereport', TroubleReportController::class);
